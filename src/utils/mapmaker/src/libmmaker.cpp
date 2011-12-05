@@ -32,11 +32,9 @@ void render_thumb(int seed) {
 	utils::Image image;
 	renderer.SetSourceNoiseMap (heightMap);
 	renderer.SetDestImage (image);
-	int width = 360;
+	int width = 16200;
 	float resolution = EARTH_WIDTH/width;
-	printf("%f\n", EARTH_HEIGTH);
-	int height = EARTH_HEIGTH / resolution;
-	printf("%f %i %i\n", resolution, width, height);
+	int height = 8100;
 	heightMapBuilder.SetDestSize (width, height);
 	heightMapBuilder.SetBounds (-180.0, 180.0, -2.0, 2.0);
 	printf("Resolution %f km per pixel\n", EARTH_WIDTH/width);
