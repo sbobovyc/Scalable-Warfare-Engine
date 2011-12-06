@@ -11,7 +11,7 @@ using namespace noise;
 #include "libmmaker.hpp"
 
 void callback(int row) {
-	//printf("row %i\n", row);
+	//	printf("row %i\n", row);
 }
 
 /**
@@ -40,21 +40,91 @@ void xy2cyl(int x, int y, float & angle, float & height) {
 	float y_transformed = -1.0 * (y - center_y);
 
 	//printf("%i %i  %f %f \n", x, y, x_transformed, y_transformed);
-	angle = (x_transformed - 0) / PIXELS_PER_DEGREE;
-	height = ((y_transformed - 0) / THUMBNAIL_MAP_HEIGHT) * HEIGHTMAP_BUILDER_Y_HIGH * 2;
-	//TODO fix bug by doing ceil()
-	//printf("%f %f\n", angle, height);
-	//angle = round(angle);	
-	//height = round(height);
+	angle = ( (x_transformed - 0) / PIXELS_PER_DEGREE );
+	height = ( ((y_transformed - 0) / THUMBNAIL_MAP_HEIGHT) * HEIGHTMAP_BUILDER_Y_HIGH * 2 );
+
 }
 
+void noises() {
+	module::RidgedMulti mountainTerrain;
+	//mountainTerrain.SetOctaveCount(1);
+	utils::NoiseMap heightMap;
+	utils::NoiseMapBuilderPlane heightMapBuilder;
+	heightMapBuilder.SetSourceModule (mountainTerrain);
+	heightMapBuilder.SetDestNoiseMap (heightMap);
+	heightMapBuilder.SetDestSize (256, 256);
+	heightMapBuilder.SetBounds (6.0, 10.0, 1.0, 5.0);
+	heightMapBuilder.Build ();
+
+	utils::RendererImage renderer;
+	utils::Image image;
+	renderer.SetSourceNoiseMap (heightMap);
+	renderer.SetDestImage (image);
+	renderer.ClearGradient ();
+	renderer.BuildGrayscaleGradient();
+	renderer.EnableLight ();
+	renderer.SetLightContrast (3.0);
+	renderer.SetLightBrightness (2.0);
+	renderer.Render ();
+
+	utils::WriterBMP writer;
+	writer.SetSourceImage (image);
+	writer.SetDestFilename ("mountainTerrain.bmp");
+	writer.WriteDestFile ();	
+
+	module::Billow baseFlatTerrain;
+	baseFlatTerrain.SetOctaveCount(1);
+	baseFlatTerrain.SetFrequency (2.0);
+	
+	heightMapBuilder.SetSourceModule (baseFlatTerrain);
+        heightMapBuilder.SetDestNoiseMap (heightMap);
+        heightMapBuilder.SetDestSize (256, 256);
+        heightMapBuilder.SetBounds (6.0, 10.0, 1.0, 5.0);
+        heightMapBuilder.Build ();
+	
+	renderer.SetSourceNoiseMap (heightMap);
+        renderer.SetDestImage (image);
+        renderer.ClearGradient ();
+        renderer.BuildGrayscaleGradient();
+        renderer.EnableLight ();
+        renderer.SetLightContrast (3.0);
+        renderer.SetLightBrightness (2.0);
+        renderer.Render ();
+
+	writer.SetSourceImage (image);
+	writer.SetDestFilename ("baseFlatTerrain.bmp");
+	writer.WriteDestFile ();
+
+	  module::ScaleBias flatTerrain;
+  flatTerrain.SetSourceModule (0, baseFlatTerrain);
+  flatTerrain.SetScale (0.125);
+	
+	heightMapBuilder.SetSourceModule (flatTerrain);
+        heightMapBuilder.SetDestNoiseMap (heightMap);
+        heightMapBuilder.SetDestSize (256, 256);
+        heightMapBuilder.SetBounds (6.0, 10.0, 1.0, 5.0);
+        heightMapBuilder.Build ();
+
+        renderer.SetSourceNoiseMap (heightMap);
+        renderer.SetDestImage (image);
+        renderer.ClearGradient ();
+        renderer.BuildGrayscaleGradient();
+        renderer.EnableLight ();
+        renderer.SetLightContrast (3.0);
+        renderer.SetLightBrightness (2.0);
+        renderer.Render ();
+
+        writer.SetSourceImage (image);
+        writer.SetDestFilename ("flatTerrain.bmp");
+        writer.WriteDestFile ();	
+}
 /**
  * @param seed
  * This function generates a thumbnail of a planet using a cylindrical projection. More accurately, this is a Mercator projection.
  */
 void render_thumb(int seed) {
+	noises();
 	module::Perlin myModule;
-
 	myModule.SetSeed(seed);
 
 	utils::NoiseMap heightMap;
@@ -93,10 +163,40 @@ void render_thumb(int seed) {
 	writer.WriteDestFile ();
 }
 
-void render_tile(module::Perlin & myModule, int tile_ul_x, int tile_ul_y) {
+void render_tile(module::Perlin & terrain, int tile_ul_x, int tile_ul_y, float tile_size) {
+	//module::RidgedMulti mountainTerrain;
+
+	//module::Billow baseFlatTerrain;
+	//baseFlatTerrain.SetFrequency (2.0);
+
+	//module::ScaleBias flatTerrain;
+	//flatTerrain.SetSourceModule (0, baseFlatTerrain);
+	//flatTerrain.SetScale (0.125);
+	//flatTerrain.SetBias (-0.25);
+
+	//module::Select terrainSelector;
+	//terrainSelector.SetSourceModule(0, flatTerrain);
+	//terrainSelector.SetSourceModule(1, mountainTerrain);
+	//terrainSelector.SetControlModule (terrain);
+	//terrainSelector.SetBounds (0.0, 1000.0);
+	//terrainSelector.SetEdgeFalloff (0.125);
+
+	//module::Turbulence myModule;
+	//myModule.SetFrequency(4.0);
+	//myModule.SetSourceModule (0, terrainSelector);
+
+	//module::Turbulence myModule;
+	//myModule.SetFrequency(1.0);
+	//myModule.SetPower(0.25);
+	//myModule.SetSourceModule (0, terrain);
+
+	//module::Add finalTerrain;
+	//finalTerrain.SetSourceModule(0, terrain);
+	//finalTerrain.SetSourceModule(1, flatTerrain);
+
 	utils::NoiseMap heightMap;
 	utils::NoiseMapBuilderCylinder heightMapBuilder;
-	heightMapBuilder.SetSourceModule (myModule);
+	heightMapBuilder.SetSourceModule (terrain);
 	heightMapBuilder.SetDestNoiseMap (heightMap);
 	heightMapBuilder.SetCallback(*callback);
 	utils::RendererImage renderer;
@@ -110,14 +210,14 @@ void render_tile(module::Perlin & myModule, int tile_ul_x, int tile_ul_y) {
 	float upper_y = 0.0;
 	float lower_x = 0.0;
 	float lower_y = 0.0;
-	int tile_lr_x = tile_ul_x + TILE_SIZE * PIXELS_PER_DEGREE;
-	int tile_lr_y = tile_ul_y + TILE_SIZE * PIXELS_PER_DEGREE;
+	int tile_lr_x = tile_ul_x + tile_size * PIXELS_PER_DEGREE;
+	int tile_lr_y = tile_ul_y + tile_size * PIXELS_PER_DEGREE;
 	printf("%i %i    %i %i \n", tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
 	xy2cyl(tile_ul_x, tile_ul_y, lower_x, upper_y);
 	xy2cyl(tile_lr_x, tile_lr_y, upper_x, lower_y);
 	printf("%f %f    %f %f \n", lower_x, lower_y, upper_x, upper_y);
 	heightMapBuilder.SetBounds (lower_x, upper_x, lower_y, upper_y);
-	printf("Resolution %f km per pixel\n", EARTH_WIDTH/width);
+	//printf("Resolution %f km per pixel\n", EARTH_WIDTH/width);
 	heightMapBuilder.Build ();
 	renderer.ClearGradient ();
 	renderer.AddGradientPoint (-1.0000, utils::Color (  0,   0, 128, 255)); // deeps
@@ -142,10 +242,10 @@ void render_tile(module::Perlin & myModule, int tile_ul_x, int tile_ul_y) {
 }
 
 /**
- * 30*e^(-x/5)
+ * 30*e^(-x/5) + 10
  */
 int get_octaves(double tile_size) {
-	return ceil( 30 * exp( -tile_size / 5.0 ) );
+	return ceil( 30 * exp( -tile_size / 5.0 ) + 10 );
 }
 
 /**
@@ -155,19 +255,19 @@ int get_octaves(double tile_size) {
  * @param y_count Number of vertical tiles. 
  * @param tile_size Size of each tile in degrees.
  */
-void render_tiles(int seed, int x, int y, int x_count, int y_count, float tile_size = TILE_SIZE) {
+void render_tiles(int seed, int x, int y, int x_count, int y_count, float tile_size) {
 
 	module::Perlin myModule;
 	myModule.SetSeed(seed);
 	int octaves = get_octaves(tile_size);
 	myModule.SetOctaveCount(octaves);
-	printf("Octave count %i", octaves);
+	printf("Octave count %i \n", octaves);
 
 	for(int i = 0; i < x_count; i++) {
 		for(int j = 0; j < y_count; j++) {
-			int tile_ul_x = i * tile_size * PIXELS_PER_DEGREE;
-			int tile_ul_y = j * tile_size * PIXELS_PER_DEGREE;
-			render_tile(myModule, tile_ul_x, tile_ul_y);
+			int tile_ul_x = x + i * tile_size * PIXELS_PER_DEGREE;
+			int tile_ul_y = y + j * tile_size * PIXELS_PER_DEGREE;
+			render_tile(myModule, tile_ul_x, tile_ul_y, tile_size);
 		}
 	}
 }
