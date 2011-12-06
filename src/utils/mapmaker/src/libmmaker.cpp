@@ -15,6 +15,40 @@ void callback(int row) {
 }
 
 /**
+ * Round to largest integer quantity.
+ */
+double round_li(double f) {
+	if(f > 0.0 ) {
+		return ceil(f);
+	} else if(f < 0.0) {
+		return -ceil(-f);
+	} else {
+		return 0.0;
+	}
+}
+
+/**
+ * @param x The x coordinate in image space.
+ * @param y The y coordinate in image space.
+ * @param angle The pointer to an angle in cylinder space.
+ * @param height The the pointer a height in cylinder space.
+ */
+void xy2cyl(int x, int y, float & angle, float & height) {
+	float center_x = THUMBNAIL_MAP_WIDTH / 2.0;
+	float center_y = THUMBNAIL_MAP_HEIGHT / 2.0;
+	float x_transformed = x - center_x;
+	float y_transformed = -1.0 * (y - center_y);
+
+	//printf("%i %i  %f %f \n", x, y, x_transformed, y_transformed);
+	angle = (x_transformed - 0) / PIXELS_PER_DEGREE;
+	height = ((y_transformed - 0) / THUMBNAIL_MAP_HEIGHT) * HEIGHTMAP_BUILDER_Y_HIGH * 2;
+	//TODO fix bug by doing ceil()
+	//printf("%f %f\n", angle, height);
+	//angle = round(angle);	
+	//height = round(height);
+}
+
+/**
  * @param seed
  * This function generates a thumbnail of a planet using a cylindrical projection. More accurately, this is a Mercator projection.
  */
@@ -32,12 +66,12 @@ void render_thumb(int seed) {
 	utils::Image image;
 	renderer.SetSourceNoiseMap (heightMap);
 	renderer.SetDestImage (image);
-	int width = 16200;
-	float resolution = EARTH_WIDTH/width;
-	int height = 8100;
+	int width = THUMBNAIL_MAP_WIDTH;
+	int height = THUMBNAIL_MAP_HEIGHT;
 	heightMapBuilder.SetDestSize (width, height);
-	heightMapBuilder.SetBounds (-180.0, 180.0, -2.0, 2.0);
-	printf("Resolution %f km per pixel\n", EARTH_WIDTH/width);
+	heightMapBuilder.SetBounds (-180.0, 180.0, HEIGHTMAP_BUILDER_Y_LOW, HEIGHTMAP_BUILDER_Y_HIGH);
+	//float resolution = EARTH_WIDTH/width;
+	//printf("Resolution %f km per pixel\n", EARTH_WIDTH/width);
 	heightMapBuilder.Build ();
 	renderer.ClearGradient ();
 	renderer.AddGradientPoint (-1.0000, utils::Color (  0,   0, 128, 255)); // deeps
@@ -59,8 +93,7 @@ void render_thumb(int seed) {
 	writer.WriteDestFile ();
 }
 
-void render_tile(module::Perlin & myModule, int i, int j, float tile_height, float tile_width) {
-
+void render_tile(module::Perlin & myModule, int tile_ul_x, int tile_ul_y) {
 	utils::NoiseMap heightMap;
 	utils::NoiseMapBuilderCylinder heightMapBuilder;
 	heightMapBuilder.SetSourceModule (myModule);
@@ -71,9 +104,19 @@ void render_tile(module::Perlin & myModule, int i, int j, float tile_height, flo
 	renderer.SetSourceNoiseMap (heightMap);
 	renderer.SetDestImage (image);
 	int width = 512;
-	int height = 460;
+	int height = 512;
 	heightMapBuilder.SetDestSize (width, height);
-	heightMapBuilder.SetBounds (-90.0, 90.0, -1.0, 1.0);
+	float upper_x = 0.0;
+	float upper_y = 0.0;
+	float lower_x = 0.0;
+	float lower_y = 0.0;
+	int tile_lr_x = tile_ul_x + TILE_SIZE * PIXELS_PER_DEGREE;
+	int tile_lr_y = tile_ul_y + TILE_SIZE * PIXELS_PER_DEGREE;
+	printf("%i %i    %i %i \n", tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
+	xy2cyl(tile_ul_x, tile_ul_y, lower_x, upper_y);
+	xy2cyl(tile_lr_x, tile_lr_y, upper_x, lower_y);
+	printf("%f %f    %f %f \n", lower_x, lower_y, upper_x, upper_y);
+	heightMapBuilder.SetBounds (lower_x, upper_x, lower_y, upper_y);
 	printf("Resolution %f km per pixel\n", EARTH_WIDTH/width);
 	heightMapBuilder.Build ();
 	renderer.ClearGradient ();
@@ -93,21 +136,39 @@ void render_tile(module::Perlin & myModule, int i, int j, float tile_height, flo
 	utils::WriterBMP writer;
 	writer.SetSourceImage (image);
 	char name[100];
-	sprintf(name, "tile%i%i.bmp", i, j);
+	sprintf(name, "tile_%i_%i.bmp", tile_ul_x, tile_ul_y);
 	writer.SetDestFilename (name);
 	writer.WriteDestFile ();
 }
 
-void render_tiles(int seed, float tile_height, float tile_width, int x_tiles, int y_tiles) {
+/**
+ * 30*e^(-x/5)
+ */
+int get_octaves(double tile_size) {
+	return ceil( 30 * exp( -tile_size / 5.0 ) );
+}
+
+/**
+ * @param x The upper left x coordinate in image space.
+ * @param y The upper left y coordinate in image space.
+ * @param x_count Number of horizontal tiles. 
+ * @param y_count Number of vertical tiles. 
+ * @param tile_size Size of each tile in degrees.
+ */
+void render_tiles(int seed, int x, int y, int x_count, int y_count, float tile_size = TILE_SIZE) {
 
 	module::Perlin myModule;
 	myModule.SetSeed(seed);
-	
-	for(int i = 0; i < x_tiles; i++) {
-		for(int j = 0; j < y_tiles; j++) {
-			render_tile(myModule, i, j, tile_height, tile_width);
+	int octaves = get_octaves(tile_size);
+	myModule.SetOctaveCount(octaves);
+	printf("Octave count %i", octaves);
+
+	for(int i = 0; i < x_count; i++) {
+		for(int j = 0; j < y_count; j++) {
+			int tile_ul_x = i * tile_size * PIXELS_PER_DEGREE;
+			int tile_ul_y = j * tile_size * PIXELS_PER_DEGREE;
+			render_tile(myModule, tile_ul_x, tile_ul_y);
 		}
 	}
-
 }
 
