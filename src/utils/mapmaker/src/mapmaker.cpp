@@ -3,7 +3,7 @@
 #include "libmmaker.hpp"
 
 int main(int argc, char ** argv) {
-	//render_thumb(200);
-	render_tiles(200, 60, 0, 1, 1, TILE_SIZE * 60);
+	render_thumb(200);
+	//render_tiles(200, 200, 600, 1, 1, 30, 30, 512, 256);
 	return 0;
 }
