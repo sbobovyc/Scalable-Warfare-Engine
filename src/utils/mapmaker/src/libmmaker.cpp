@@ -82,9 +82,14 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
 	waterSelector.SetBounds (0.0, 1000.0);
 	waterSelector.SetEdgeFalloff (0.125);
 
+	module::Turbulence finalTerrain;
+	finalTerrain.SetSourceModule (0, waterSelector);
+	finalTerrain.SetFrequency (8.0);
+	finalTerrain.SetPower (0.05);
+
 	utils::NoiseMap heightMap;
 	utils::NoiseMapBuilderCylinder heightMapBuilder;
-	heightMapBuilder.SetSourceModule (waterSelector);
+	heightMapBuilder.SetSourceModule (finalTerrain);
 	heightMapBuilder.SetDestNoiseMap (heightMap);
 	heightMapBuilder.SetCallback(*callback);
 	utils::RendererImage renderer;
@@ -125,13 +130,13 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
 	
 	utils::Color color = image.GetValue(0,0);
 	printf("R:%i G:%i B:%i A:%i \n", color.red, color.green, color.blue, color.alpha);
-	//utils::WriterBMP writer;
-	//writer.SetSourceImage (image);
+	utils::WriterBMP writer;
+	writer.SetSourceImage (image);
 	char final_name[100];
 	sprintf(final_name, "%s.bmp", name);
 	printf("%s \n", final_name);
-	//writer.SetDestFilename (name);
-	//writer.WriteDestFile ();
+	writer.SetDestFilename (final_name);
+	writer.WriteDestFile ();
 }
 
 /**
