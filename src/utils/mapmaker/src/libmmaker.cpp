@@ -65,31 +65,30 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
 	module::ScaleBias flatTerrain;
 	flatTerrain.SetSourceModule (0, baseFlatTerrain);
 	flatTerrain.SetScale (0.175);
-	flatTerrain.SetBias (0.1);
+	flatTerrain.SetBias (0.05);
 
 	module::Select terrainSelector;
 	terrainSelector.SetSourceModule (0, flatTerrain);
 	terrainSelector.SetSourceModule (1, mountainTerrain);
 	terrainSelector.SetControlModule (terrain);
 	terrainSelector.SetBounds (0.0, 1000.0);
-	terrainSelector.SetEdgeFalloff (0.5);
+	terrainSelector.SetEdgeFalloff (0.25);
 
 	module::Select waterSelector;
 	waterSelector.SetSourceModule(0, terrainSelector);
 	waterSelector.SetSourceModule(1, water);
 	waterSelector.SetControlModule(waterBillow);
-	
 	waterSelector.SetBounds (0.0, 1000.0);
-	waterSelector.SetEdgeFalloff (0.125);
-
+	waterSelector.SetEdgeFalloff (0.5);
+	
 	module::Turbulence finalTerrain;
-	finalTerrain.SetSourceModule (0, waterSelector);
-	finalTerrain.SetFrequency (8.0);
-	finalTerrain.SetPower (0.05);
+	finalTerrain.SetSourceModule(0, waterSelector);
+	finalTerrain.SetFrequency(8.0);
+	finalTerrain.SetPower(0.001);
 
 	utils::NoiseMap heightMap;
 	utils::NoiseMapBuilderCylinder heightMapBuilder;
-	heightMapBuilder.SetSourceModule (finalTerrain);
+	heightMapBuilder.SetSourceModule (waterSelector);
 	heightMapBuilder.SetDestNoiseMap (heightMap);
 	heightMapBuilder.SetCallback(*callback);
 	utils::RendererImage renderer;
@@ -117,8 +116,9 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
 	renderer.AddGradientPoint (-1.0000, utils::Color (  0,   0, 128, 255)); // deeps
 	renderer.AddGradientPoint (-0.2500, utils::Color (  0,   0, 255, 255)); // shallow
 	renderer.AddGradientPoint ( 0.0000, utils::Color (  0, 128, 255, 255)); // shore
-	renderer.AddGradientPoint ( 0.0625, utils::Color (240, 240,  64, 255)); // sand
-	renderer.AddGradientPoint ( 0.1250, utils::Color ( 32, 160,   0, 255)); // grass
+	//renderer.AddGradientPoint ( 0.0625, utils::Color (240, 240,  64, 255)); // sand
+	renderer.AddGradientPoint ( 0.0125, utils::Color (240, 240,  64, 255)); // sand
+	renderer.AddGradientPoint ( 0.0250, utils::Color ( 32, 160,   0, 255)); // grass
 	renderer.AddGradientPoint ( 0.3750, utils::Color (139, 169,  19, 255)); // dirt
 	renderer.AddGradientPoint ( 0.7500, utils::Color ( 92,  51,  23, 255)); // rock
 	renderer.AddGradientPoint ( 0.9000, utils::Color (125, 125, 125, 255)); // mixed rock and snow
