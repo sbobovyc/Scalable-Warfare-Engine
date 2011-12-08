@@ -13,6 +13,6 @@
 
 extern "C" double round_li(double f);
 extern "C" void xy2cyl(int x, int y, float & angle, float & height);
-extern "C" void render_thumb(int);
-extern "C" void render_tiles(int seed, int x, int y, int x_count, int y_count, float tile_size_x, float tile_size_y, int output_width, int output_height);
+extern "C" void render_thumb(int seed, char * name);
+extern "C" void render_tiles(int seed, int x, int y, int x_count, int y_count, float tile_size_x, float tile_size_y, int output_width, int output_height, char * name);
 #endif /* LIBMMAKER_H */

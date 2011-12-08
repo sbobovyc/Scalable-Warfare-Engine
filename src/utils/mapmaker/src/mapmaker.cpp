@@ -3,7 +3,8 @@
 #include "libmmaker.hpp"
 
 int main(int argc, char ** argv) {
-	render_thumb(200);
-	//render_tiles(200, 200, 600, 1, 1, 30, 30, 512, 256);
+	char name[] = "world_one_map";
+	render_thumb(200, name);
+	render_tiles(200, 200, 600, 1, 1, 30, 30, 512, 256, name);
 	return 0;
 }

@@ -46,7 +46,7 @@ void xy2cyl(int x, int y, float & angle, float & height) {
 }
 
 
-void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_ul_y, float tile_size_x, float tile_size_y, int output_width, int output_height) {
+void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_ul_y, float tile_size_x, float tile_size_y, int output_width, int output_height, char * name) {
 	module::Const water;
 	water.SetConstValue(-1.0);
 
@@ -99,12 +99,14 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
 	float lower_y = 0.0;
 	int tile_lr_x = tile_ul_x + tile_size_x * PIXELS_PER_DEGREE_X;
 	int tile_lr_y = tile_ul_y + tile_size_y * PIXELS_PER_DEGREE_Y;
-	printf("%i %i    %i %i \n", tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
+	printf("Tile coordinates in image space: (ulx, uly)=(%i,%i) (lrx, lry)=(%i,%i) \n", tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
 	xy2cyl(tile_ul_x, tile_ul_y, lower_x, upper_y);
 	xy2cyl(tile_lr_x, tile_lr_y, upper_x, lower_y);
-	printf("%f %f    %f %f \n", lower_x, lower_y, upper_x, upper_y);
+	printf("Tile coordinates in cylinder space: (lx, ly)=(%f,%f) (ux, uy)=(%f,%f) \n", lower_x, lower_y, upper_x, upper_y);
 	heightMapBuilder.SetBounds (lower_x, upper_x, lower_y, upper_y);
-	//printf("Resolution %f km per pixel\n", EARTH_WIDTH/width);
+	//FIXME Resolution calculation is wrong
+	//printf("Tile horizontal resolution %f km per pixel\n", EARTH_WIDTH/output_width);
+	//printf("Tile vertical resolution %f km per pixel\n", EARTH_HEIGTH/output_height);
 	heightMapBuilder.Build ();
 	renderer.ClearGradient ();
 	renderer.AddGradientPoint (-1.0000, utils::Color (  0,   0, 128, 255)); // deeps
@@ -113,20 +115,23 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
 	renderer.AddGradientPoint ( 0.0625, utils::Color (240, 240,  64, 255)); // sand
 	renderer.AddGradientPoint ( 0.1250, utils::Color ( 32, 160,   0, 255)); // grass
 	renderer.AddGradientPoint ( 0.3750, utils::Color (139, 169,  19, 255)); // dirt
-	//renderer.AddGradientPoint ( 0.7500, utils::Color (128, 128, 128, 255)); // rock
 	renderer.AddGradientPoint ( 0.7500, utils::Color ( 92,  51,  23, 255)); // rock
+	renderer.AddGradientPoint ( 0.9000, utils::Color (125, 125, 125, 255)); // mixed rock and snow
 	renderer.AddGradientPoint ( 1.0000, utils::Color (255, 255, 255, 255)); // snow
 	renderer.EnableLight ();
 	renderer.SetLightContrast (3.0);
 	renderer.SetLightBrightness (2.0);
 	renderer.Render ();
-
-	utils::WriterBMP writer;
-	writer.SetSourceImage (image);
-	char name[100];
-	sprintf(name, "tile_%i_%i.bmp", tile_ul_x, tile_ul_y);
-	writer.SetDestFilename (name);
-	writer.WriteDestFile ();
+	
+	utils::Color color = image.GetValue(0,0);
+	printf("R:%i G:%i B:%i A:%i \n", color.red, color.green, color.blue, color.alpha);
+	//utils::WriterBMP writer;
+	//writer.SetSourceImage (image);
+	char final_name[100];
+	sprintf(final_name, "%s.bmp", name);
+	printf("%s \n", final_name);
+	//writer.SetDestFilename (name);
+	//writer.WriteDestFile ();
 }
 
 /**
@@ -143,19 +148,22 @@ int get_octaves(double tile_size) {
  * @param y_count Number of vertical tiles. 
  * @param tile_size Size of each tile in degrees.
  */
-void render_tiles(int seed, int x, int y, int x_count, int y_count, float tile_size_x, float tile_size_y, int output_width, int output_height) {
+void render_tiles(int seed, int x, int y, int x_count, int y_count, float tile_size_x, float tile_size_y, int output_width, int output_height, char * name) {
+	module::Perlin terrain;
+	terrain.SetSeed(seed);
 
-	module::Perlin myModule;
-	myModule.SetSeed(seed);
 	int octaves = get_octaves( (tile_size_x + tile_size_y / 2.0) );
-	myModule.SetOctaveCount(octaves);
+	terrain.SetOctaveCount(octaves);
+
 	printf("Octave count %i \n", octaves);
 
 	for(int i = 0; i < x_count; i++) {
 		for(int j = 0; j < y_count; j++) {
 			int tile_ul_x = x + i * tile_size_x * PIXELS_PER_DEGREE_X;
 			int tile_ul_y = y + j * tile_size_y * PIXELS_PER_DEGREE_Y;
-			render_tile(myModule, octaves, tile_ul_x, tile_ul_y, tile_size_x, tile_size_y, output_width, output_height);
+			char final_name[100];
+			sprintf(final_name, "%s_tile_%i_%i", name, tile_ul_x, tile_ul_y);
+			render_tile(terrain, octaves, tile_ul_x, tile_ul_y, tile_size_x, tile_size_y, output_width, output_height, final_name);
 		}
 	}
 }
@@ -164,6 +172,8 @@ void render_tiles(int seed, int x, int y, int x_count, int y_count, float tile_s
  * @param seed
  * This function generates a thumbnail of a planet using a cylindrical projection. More accurately, this is a Mercator projection.
  */
-void render_thumb(int seed) {
-	render_tiles(seed, 0, 0, 1, 1, 360, 360, THUMBNAIL_MAP_WIDTH, THUMBNAIL_MAP_HEIGHT);
+void render_thumb(int seed, char * name) {
+	module::Perlin terrain;
+	terrain.SetSeed(seed);
+	render_tile(terrain, 10, 0, 0, 360, 360, THUMBNAIL_MAP_WIDTH, THUMBNAIL_MAP_HEIGHT, name);
 }
