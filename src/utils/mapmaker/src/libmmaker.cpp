@@ -75,48 +75,48 @@ void noises() {
 	module::Billow baseFlatTerrain;
 	baseFlatTerrain.SetOctaveCount(1);
 	baseFlatTerrain.SetFrequency (2.0);
-	
+
 	heightMapBuilder.SetSourceModule (baseFlatTerrain);
-        heightMapBuilder.SetDestNoiseMap (heightMap);
-        heightMapBuilder.SetDestSize (256, 256);
-        heightMapBuilder.SetBounds (6.0, 10.0, 1.0, 5.0);
-        heightMapBuilder.Build ();
-	
+	heightMapBuilder.SetDestNoiseMap (heightMap);
+	heightMapBuilder.SetDestSize (256, 256);
+	heightMapBuilder.SetBounds (6.0, 10.0, 1.0, 5.0);
+	heightMapBuilder.Build ();
+
 	renderer.SetSourceNoiseMap (heightMap);
-        renderer.SetDestImage (image);
-        renderer.ClearGradient ();
-        renderer.BuildGrayscaleGradient();
-        renderer.EnableLight ();
-        renderer.SetLightContrast (3.0);
-        renderer.SetLightBrightness (2.0);
-        renderer.Render ();
+	renderer.SetDestImage (image);
+	renderer.ClearGradient ();
+	renderer.BuildGrayscaleGradient();
+	renderer.EnableLight ();
+	renderer.SetLightContrast (3.0);
+	renderer.SetLightBrightness (2.0);
+	renderer.Render ();
 
 	writer.SetSourceImage (image);
 	writer.SetDestFilename ("baseFlatTerrain.bmp");
 	writer.WriteDestFile ();
 
-	  module::ScaleBias flatTerrain;
-  flatTerrain.SetSourceModule (0, baseFlatTerrain);
-  flatTerrain.SetScale (0.125);
-	
+	module::ScaleBias flatTerrain;
+	flatTerrain.SetSourceModule (0, baseFlatTerrain);
+	flatTerrain.SetScale (0.125);
+
 	heightMapBuilder.SetSourceModule (flatTerrain);
-        heightMapBuilder.SetDestNoiseMap (heightMap);
-        heightMapBuilder.SetDestSize (256, 256);
-        heightMapBuilder.SetBounds (6.0, 10.0, 1.0, 5.0);
-        heightMapBuilder.Build ();
+	heightMapBuilder.SetDestNoiseMap (heightMap);
+	heightMapBuilder.SetDestSize (256, 256);
+	heightMapBuilder.SetBounds (6.0, 10.0, 1.0, 5.0);
+	heightMapBuilder.Build ();
 
-        renderer.SetSourceNoiseMap (heightMap);
-        renderer.SetDestImage (image);
-        renderer.ClearGradient ();
-        renderer.BuildGrayscaleGradient();
-        renderer.EnableLight ();
-        renderer.SetLightContrast (3.0);
-        renderer.SetLightBrightness (2.0);
-        renderer.Render ();
+	renderer.SetSourceNoiseMap (heightMap);
+	renderer.SetDestImage (image);
+	renderer.ClearGradient ();
+	renderer.BuildGrayscaleGradient();
+	renderer.EnableLight ();
+	renderer.SetLightContrast (3.0);
+	renderer.SetLightBrightness (2.0);
+	renderer.Render ();
 
-        writer.SetSourceImage (image);
-        writer.SetDestFilename ("flatTerrain.bmp");
-        writer.WriteDestFile ();	
+	writer.SetSourceImage (image);
+	writer.SetDestFilename ("flatTerrain.bmp");
+	writer.WriteDestFile ();	
 }
 /**
  * @param seed
@@ -163,46 +163,52 @@ void render_thumb(int seed) {
 	writer.WriteDestFile ();
 }
 
-void render_tile(module::Perlin & terrain, int tile_ul_x, int tile_ul_y, float tile_size) {
-	//module::RidgedMulti mountainTerrain;
+void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_ul_y, float tile_size) {
+	module::Const water;
+	water.SetConstValue(-1.0);
 
-	//module::Billow baseFlatTerrain;
-	//baseFlatTerrain.SetFrequency (2.0);
+	module::Billow waterBillow;
+	waterBillow.SetOctaveCount(octaves);
+	waterBillow.SetFrequency (0.5);
 
-	//module::ScaleBias flatTerrain;
-	//flatTerrain.SetSourceModule (0, baseFlatTerrain);
-	//flatTerrain.SetScale (0.125);
-	//flatTerrain.SetBias (-0.25);
+	module::RidgedMulti mountainTerrain;
+	mountainTerrain.SetOctaveCount(octaves);
+	mountainTerrain.SetFrequency(0.5);
 
-	//module::Select terrainSelector;
-	//terrainSelector.SetSourceModule(0, flatTerrain);
-	//terrainSelector.SetSourceModule(1, mountainTerrain);
-	//terrainSelector.SetControlModule (terrain);
-	//terrainSelector.SetBounds (0.0, 1000.0);
-	//terrainSelector.SetEdgeFalloff (0.125);
+	module::Billow baseFlatTerrain;
+	baseFlatTerrain.SetOctaveCount(octaves);
+	baseFlatTerrain.SetFrequency (2.0);
 
-	//module::Turbulence myModule;
-	//myModule.SetFrequency(4.0);
-	//myModule.SetSourceModule (0, terrainSelector);
+	module::ScaleBias flatTerrain;
+	flatTerrain.SetSourceModule (0, baseFlatTerrain);
+	flatTerrain.SetScale (0.175);
+	flatTerrain.SetBias (0.1);
 
-	//module::Turbulence myModule;
-	//myModule.SetFrequency(1.0);
-	//myModule.SetPower(0.25);
-	//myModule.SetSourceModule (0, terrain);
+	module::Select terrainSelector;
+	terrainSelector.SetSourceModule (0, flatTerrain);
+	terrainSelector.SetSourceModule (1, mountainTerrain);
+	terrainSelector.SetControlModule (terrain);
+	terrainSelector.SetBounds (0.0, 1000.0);
+	terrainSelector.SetEdgeFalloff (0.5);
 
-	//module::Add finalTerrain;
-	//finalTerrain.SetSourceModule(0, terrain);
-	//finalTerrain.SetSourceModule(1, flatTerrain);
+	module::Select waterSelector;
+	waterSelector.SetSourceModule(0, terrainSelector);
+	waterSelector.SetSourceModule(1, water);
+	waterSelector.SetControlModule(waterBillow);
+	
+	waterSelector.SetBounds (0.0, 1000.0);
+	waterSelector.SetEdgeFalloff (0.125);
 
 	utils::NoiseMap heightMap;
 	utils::NoiseMapBuilderCylinder heightMapBuilder;
-	heightMapBuilder.SetSourceModule (terrain);
+	heightMapBuilder.SetSourceModule (waterSelector);
 	heightMapBuilder.SetDestNoiseMap (heightMap);
 	heightMapBuilder.SetCallback(*callback);
 	utils::RendererImage renderer;
 	utils::Image image;
 	renderer.SetSourceNoiseMap (heightMap);
 	renderer.SetDestImage (image);
+
 	int width = 512;
 	int height = 512;
 	heightMapBuilder.SetDestSize (width, height);
@@ -267,7 +273,7 @@ void render_tiles(int seed, int x, int y, int x_count, int y_count, float tile_s
 		for(int j = 0; j < y_count; j++) {
 			int tile_ul_x = x + i * tile_size * PIXELS_PER_DEGREE;
 			int tile_ul_y = y + j * tile_size * PIXELS_PER_DEGREE;
-			render_tile(myModule, tile_ul_x, tile_ul_y, tile_size);
+			render_tile(myModule, octaves, tile_ul_x, tile_ul_y, tile_size);
 		}
 	}
 }
