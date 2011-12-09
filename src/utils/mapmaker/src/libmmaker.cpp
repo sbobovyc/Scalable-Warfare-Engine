@@ -88,7 +88,7 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
 
 	utils::NoiseMap heightMap;
 	utils::NoiseMapBuilderCylinder heightMapBuilder;
-	heightMapBuilder.SetSourceModule (waterSelector);
+	heightMapBuilder.SetSourceModule (finalTerrain);
 	heightMapBuilder.SetDestNoiseMap (heightMap);
 	heightMapBuilder.SetCallback(*callback);
 	utils::RendererImage renderer;
@@ -143,7 +143,11 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
  * 30*e^(-x/5) + 10
  */
 int get_octaves(double tile_size) {
-	return ceil( 30 * exp( -tile_size / 5.0 ) + 10 );
+	int octave = ceil( 30 * exp( -tile_size / 5.0 ) + 10 );
+
+	if(octave > noise::module::PERLIN_MAX_OCTAVE)
+		octave = noise::module::PERLIN_MAX_OCTAVE;
+	return octave;
 }
 
 /**
