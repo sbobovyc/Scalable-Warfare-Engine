@@ -52,7 +52,8 @@ class CApp:
 	    move_camera(0, -10)
 	if pygame.key.get_pressed()[K_DOWN]:
 	    move_camera(0, 10)
-        
+ 	if pygame.key.get_pressed()[K_ESCAPE]:
+	    self._running = False       
     def on_render(self):
         self._display_surf.blit(self._surf_image.subsurface(camera), (0,0))
 	font = pygame.font.SysFont("None", 20)
