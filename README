@@ -1,3 +1,4 @@
 Dependencies:
 libnoise
 noiseutils
+pygame

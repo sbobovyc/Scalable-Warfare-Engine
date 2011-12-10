@@ -1,29 +1,60 @@
 import pygame
 from pygame.locals import *
- 
+
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+LEVEL_WIDTH = 1620
+LEVEL_HEIGHT = 810
+
+camera = pygame.rect.Rect(0,0,SCREEN_WIDTH,SCREEN_HEIGHT)
+
+def move_camera(x, y):
+    camera.x += x
+    camera.y += y
+
+    if camera.x < 0:
+        camera.x = 0
+    if camera.y < 0:
+        camera.y = 0
+    if camera.x+camera.width > LEVEL_WIDTH:
+	camera.x = LEVEL_WIDTH-camera.width
+    if camera.y+camera.height > LEVEL_HEIGHT:
+	camera.y = LEVEL_HEIGHT-camera.height
+    print camera.x, camera.y
+
 class CApp:
     def __init__(self):
         self._running = True
         self._surf_display = None
         self._surf_image = None
 	self.fps = pygame.time.Clock()
-
+	
     def on_init(self):
         pygame.init()
-        self._display_surf = pygame.display.set_mode((640,400), pygame.HWSURFACE | pygame.DOUBLEBUF)
+        self._display_surf = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT), pygame.HWSURFACE | pygame.DOUBLEBUF)
         self._running = True
         self._surf_image = pygame.image.load("../utils/mapmaker/world_one_map.bmp").convert()
+	print self._surf_image.get_size()
  
     def on_event(self, event):
+	scroll_right = False
+
         if event.type == QUIT:
             self._running = False
-	if event.type == KEYDOWN:
-	    if event.key == K_ESCAPE:
-	        self._running = False
+	print event
+
     def on_loop(self):
-        pass
+	if pygame.key.get_pressed()[K_RIGHT]:
+	    move_camera(10, 0)
+	if pygame.key.get_pressed()[K_LEFT]:
+	    move_camera(-10, 0)
+	if pygame.key.get_pressed()[K_UP]:
+	    move_camera(0, -10)
+	if pygame.key.get_pressed()[K_DOWN]:
+	    move_camera(0, 10)
+        
     def on_render(self):
-        self._display_surf.blit(self._surf_image, (0,0))
+        self._display_surf.blit(self._surf_image.subsurface(camera), (0,0))
 	font = pygame.font.SysFont("None", 20)
 	self._display_surf.blit(font.render("FPS: %f" % (self.fps.get_fps()), 0, (255, 0, 0)), (0,0))
 	pygame.display.flip()
