@@ -41,6 +41,9 @@ class CApp:
 
         if event.type == QUIT:
             self._running = False
+	if event.type ==  MOUSEMOTION:
+	    if event.buttons == (0,1,0):
+	       move_camera(event.rel[0], event.rel[1])
 	print event
 
     def on_loop(self):
