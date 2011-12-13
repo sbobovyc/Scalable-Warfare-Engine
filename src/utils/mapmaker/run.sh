@@ -1,5 +1,5 @@
 export LD_LIBRARY_PATH=.
-#./mapmaker
+./mapmaker
 convert world_one_map.bmp -edge 1 -colorspace Gray world_one_map_mask.png
 convert world_one_map_mask.png -blur 0x2.0 world_one_map_mask_blur.png
 convert world_one_map_mask_blur.png -threshold 10% world_one_map_thresh.pgm
