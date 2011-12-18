@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <noise.h>
 #include <math.h>
+#include <iostream>
+#include <fstream>
+
 #include "noiseutils.h"
 
 using namespace noise;
@@ -12,6 +15,12 @@ using namespace noise;
 
 void callback(int row) {
 	//	printf("row %i\n", row);
+}
+
+/**
+ */
+inline double ppd(double pixels, double degrees) {
+    return pixels/degrees;
 }
 
 /**
@@ -25,6 +34,10 @@ double round_li(double f) {
 	} else {
 		return 0.0;
 	}
+}
+
+void cyl2lat_long(float angle, float height, float & lat, float & long) {
+
 }
 
 /**
@@ -108,15 +121,17 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
 	xy2cyl(tile_lr_x, tile_lr_y, upper_x, lower_y);
 	printf("Tile coordinates in cylinder space: (lx, ly)=(%f,%f) (ux, uy)=(%f,%f) \n", lower_x, lower_y, upper_x, upper_y);
 	heightMapBuilder.SetBounds (lower_x, upper_x, lower_y, upper_y);
-	//FIXME Resolution calculation is wrong
-	//printf("Tile horizontal resolution %f km per pixel\n", EARTH_WIDTH/output_width);
-	//printf("Tile vertical resolution %f km per pixel\n", EARTH_HEIGTH/output_height);
+    double horizontal_resolution = METERS_PER_DEGREE_X / ppd(output_width, tile_size_x);
+    double vertical_resolution = METERS_PER_DEGREE_Y / ppd(output_height, tile_size_y);
+	printf("Tile horizontal resolution %f km per pixel\n", horizontal_resolution);
+	printf("Tile vertical resolution %f km per pixel\n", vertical_resolution);
+	printf("Tile horizontal pixels per degree %f \n", ppd(output_width, tile_size_x));
+	printf("Tile vertical pixels per degree %f \n", ppd(output_height, tile_size_y));
 	heightMapBuilder.Build ();
 	renderer.ClearGradient ();
 	renderer.AddGradientPoint (-1.0000, utils::Color (  0,   0, 128, 255)); // deeps
 	renderer.AddGradientPoint (-0.2500, utils::Color (  0,   0, 255, 255)); // shallow
 	renderer.AddGradientPoint ( 0.0000, utils::Color (  0, 128, 255, 255)); // shore
-	//renderer.AddGradientPoint ( 0.0625, utils::Color (240, 240,  64, 255)); // sand
 	renderer.AddGradientPoint ( 0.0125, utils::Color (240, 240,  64, 255)); // sand
 	renderer.AddGradientPoint ( 0.0250, utils::Color ( 32, 160,   0, 255)); // grass
 	renderer.AddGradientPoint ( 0.3750, utils::Color (139, 169,  19, 255)); // dirt
@@ -133,10 +148,23 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
 	utils::WriterBMP writer;
 	writer.SetSourceImage (image);
 	char final_name[100];
-	sprintf(final_name, "%s.bmp", name);
+	sprintf(final_name, "%s_%i_%i_%i_%i.bmp", name, tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
 	printf("%s \n", final_name);
 	writer.SetDestFilename (final_name);
 	writer.WriteDestFile ();
+
+    //create worldfile
+    std::ofstream worldfile;
+    char worldfile_name[100];   
+    sprintf(worldfile_name, "%s_%i_%i_%i_%i.bmpw", name, tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
+    worldfile.open(worldfile_name);
+    worldfile << horizontal_resolution << std::endl; //the number of real world units per pixel in the X direction
+    worldfile << 0 << std::endl; //amount of translation  <--usually 0 or a very small number
+    worldfile << 0 << std::endl; //amount of rotation   <--usually 0 or a very small number
+    worldfile << -vertical_resolution << std::endl; //the negative of the number of real world units per pixel in the Y direction
+    worldfile << tile_ul_x << std::endl; //xMin coordinate (upper left) 
+    worldfile << tile_ul_y << std::endl; //yMax coordinate (upper left) 
+    worldfile.close();
 }
 
 /**
@@ -170,9 +198,7 @@ void render_tiles(int seed, int x, int y, int x_count, int y_count, float tile_s
 		for(int j = 0; j < y_count; j++) {
 			int tile_ul_x = x + i * tile_size_x * PIXELS_PER_DEGREE_X;
 			int tile_ul_y = y + j * tile_size_y * PIXELS_PER_DEGREE_Y;
-			char final_name[100];
-			sprintf(final_name, "%s_tile_%i_%i", name, tile_ul_x, tile_ul_y);
-			render_tile(terrain, octaves, tile_ul_x, tile_ul_y, tile_size_x, tile_size_y, output_width, output_height, final_name);
+			render_tile(terrain, octaves, tile_ul_x, tile_ul_y, tile_size_x, tile_size_y, output_width, output_height, name);
 		}
 	}
 }

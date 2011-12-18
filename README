@@ -2,3 +2,4 @@ Dependencies:
 libnoise
 noiseutils
 pygame
+libgdal1-dev

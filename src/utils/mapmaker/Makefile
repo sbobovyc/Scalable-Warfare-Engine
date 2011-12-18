@@ -1,9 +1,10 @@
 NOISE_UTILS_DIR = ../../../libs/noiseutils/
+GDAL_DIR = /usr/include/gdal
 SRC = src
 CXX = g++
-CFLAGS = -I/usr/include/libnoise -I$(NOISE_UTILS_DIR) -I$(SRC) -ansi -pedantic
+CFLAGS = -I/usr/include/libnoise -I$(NOISE_UTILS_DIR) -I$(GDAL_DIR) -I$(SRC) -ansi -pedantic
 DEBUG = -ggdb -pg -O0
-LDFLAGS = -lnoise
+LDFLAGS = -lnoise -L/usr/lib -lgdal1.7.0
 SOURCES = $(SRC)/mapmaker.cpp $(NOISE_UTILS_DIR)/noiseutils.cpp
 LIB_SOURCES = $(SRC)/libmmaker.cpp
 EXECUTABLE = mapmaker 
@@ -22,4 +23,5 @@ lib: $(LIB_SOURCES)
 	$(CXX) -shared -o libmmaker.so  $(LIB) -lnoise
 clean:
 	rm -rf *o $(EXECUTABLE) 
+	echo $(GDAL_DIR)
 
