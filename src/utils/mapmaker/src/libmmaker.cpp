@@ -390,5 +390,5 @@ void render_tiles(int seed, int x, int y, int x_count, int y_count, float tile_s
 void render_thumb(int seed, char * name) {
     module::Perlin terrain;
     terrain.SetSeed(seed);
-    render_tile(terrain, 10, 0, 0, 360, 360, THUMBNAIL_MAP_WIDTH, THUMBNAIL_MAP_HEIGHT, name);
+    render_tile(terrain, 10, 0, 0, 360, 180, THUMBNAIL_MAP_WIDTH, THUMBNAIL_MAP_HEIGHT, name);
 }
