@@ -36,8 +36,9 @@ double round_li(double f) {
 	}
 }
 
-void cyl2lat_long(float angle, float height, float & lat, float & long) {
-
+void cyl2lat_long(float angle, float height, float & latitude, float & longitude) {
+    latitude = angle;
+    longitude = (height > 0.0) ? (height / HEIGHTMAP_BUILDER_Y_HIGH) * 90.0 : (height / HEIGHTMAP_BUILDER_Y_LOW) * -90.0;
 }
 
 /**
@@ -116,10 +117,18 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
 	float lower_y = 0.0;
 	int tile_lr_x = tile_ul_x + tile_size_x * PIXELS_PER_DEGREE_X;
 	int tile_lr_y = tile_ul_y + tile_size_y * PIXELS_PER_DEGREE_Y;
+
 	printf("Tile coordinates in image space: (ulx, uly)=(%i,%i) (lrx, lry)=(%i,%i) \n", tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
 	xy2cyl(tile_ul_x, tile_ul_y, lower_x, upper_y);
 	xy2cyl(tile_lr_x, tile_lr_y, upper_x, lower_y);
 	printf("Tile coordinates in cylinder space: (lx, ly)=(%f,%f) (ux, uy)=(%f,%f) \n", lower_x, lower_y, upper_x, upper_y);
+    float ul_latitude;
+    float ul_longitude;
+    float lr_latitude;
+    float lr_longitude;
+    cyl2lat_long(lower_x, upper_y, ul_latitude, ul_longitude);
+    cyl2lat_long(upper_x, lower_y, lr_latitude, lr_longitude);
+	printf("Tile coordinates in lat/long: (ulx, uly)=(%f,%f) (lrx, lry)=(%f,%f) \n", ul_latitude, ul_longitude, lr_latitude, lr_longitude);
 	heightMapBuilder.SetBounds (lower_x, upper_x, lower_y, upper_y);
     double horizontal_resolution = METERS_PER_DEGREE_X / ppd(output_width, tile_size_x);
     double vertical_resolution = METERS_PER_DEGREE_Y / ppd(output_height, tile_size_y);
@@ -153,18 +162,6 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
 	writer.SetDestFilename (final_name);
 	writer.WriteDestFile ();
 
-    //create worldfile
-    std::ofstream worldfile;
-    char worldfile_name[100];   
-    sprintf(worldfile_name, "%s_%i_%i_%i_%i.bmpw", name, tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
-    worldfile.open(worldfile_name);
-    worldfile << horizontal_resolution << std::endl; //the number of real world units per pixel in the X direction
-    worldfile << 0 << std::endl; //amount of translation  <--usually 0 or a very small number
-    worldfile << 0 << std::endl; //amount of rotation   <--usually 0 or a very small number
-    worldfile << -vertical_resolution << std::endl; //the negative of the number of real world units per pixel in the Y direction
-    worldfile << tile_ul_x << std::endl; //xMin coordinate (upper left) 
-    worldfile << tile_ul_y << std::endl; //yMax coordinate (upper left) 
-    worldfile.close();
 }
 
 /**
