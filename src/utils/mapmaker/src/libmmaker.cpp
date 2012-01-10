@@ -242,7 +242,7 @@ void render_geotif(char * infile, char * outfile, double ulx, double uly, double
         CSLDestroy( papszCreateOptions );
 }
 
-void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_ul_y, float tile_size_x, float tile_size_y, int output_width, int output_height, char * name) {
+void render_tile(module::Perlin & terrain, int octaves, float tile_ul_x, float tile_ul_y, float tile_size_x, float tile_size_y, int output_width, int output_height, char * name) {
     module::Const water;
     water.SetConstValue(-1.0);
 
@@ -297,10 +297,10 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
     float upper_y = 0.0;
     float lower_x = 0.0;
     float lower_y = 0.0;
-    int tile_lr_x = tile_ul_x + tile_size_x * PIXELS_PER_DEGREE_X;
-    int tile_lr_y = tile_ul_y + tile_size_y * PIXELS_PER_DEGREE_Y;
+    float tile_lr_x = tile_ul_x + tile_size_x * PIXELS_PER_DEGREE_X;
+    float tile_lr_y = tile_ul_y + tile_size_y * PIXELS_PER_DEGREE_Y;
 
-    printf("Tile coordinates in image space: (ulx, uly)=(%i,%i) (lrx, lry)=(%i,%i) \n", tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
+    printf("Tile coordinates in image space: (ulx, uly)=(%f,%f) (lrx, lry)=(%f,%f) \n", tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
     xy2cyl(tile_ul_x, tile_ul_y, lower_x, upper_y);
     xy2cyl(tile_lr_x, tile_lr_y, upper_x, lower_y);
     printf("Tile coordinates in cylinder space: (lx, ly)=(%f,%f) (ux, uy)=(%f,%f) \n", lower_x, lower_y, upper_x, upper_y);
@@ -339,12 +339,12 @@ void render_tile(module::Perlin & terrain, int octaves, int tile_ul_x, int tile_
     utils::WriterBMP writer;
     writer.SetSourceImage (image);
     char final_name[100];
-    sprintf(final_name, "%s_%i_%i_%i_%i.bmp", name, tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
+    sprintf(final_name, "%s_%f_%f_%f_%f.bmp", name, tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
     printf("%s \n", final_name);
     writer.SetDestFilename (final_name);
     writer.WriteDestFile ();
 
-    render_geotif(final_name, "out.tif", ul_latitude, ul_longitude, lr_latitude, lr_longitude);
+    //render_geotif(final_name, "out.tif", ul_latitude, ul_longitude, lr_latitude, lr_longitude);
 }
 
 /**
@@ -376,8 +376,8 @@ void render_tiles(int seed, int x, int y, int x_count, int y_count, float tile_s
 
     for(int i = 0; i < x_count; i++) {
         for(int j = 0; j < y_count; j++) {
-            int tile_ul_x = x + i * tile_size_x * PIXELS_PER_DEGREE_X;
-            int tile_ul_y = y + j * tile_size_y * PIXELS_PER_DEGREE_Y;
+            float tile_ul_x = x + i * tile_size_x * PIXELS_PER_DEGREE_X;
+            float tile_ul_y = y + j * tile_size_y * PIXELS_PER_DEGREE_Y;
             render_tile(terrain, octaves, tile_ul_x, tile_ul_y, tile_size_x, tile_size_y, output_width, output_height, name);
         }
     }
