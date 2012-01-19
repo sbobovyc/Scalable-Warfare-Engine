@@ -339,7 +339,7 @@ void render_tile(module::Perlin & terrain, int octaves, float tile_ul_x, float t
     utils::WriterBMP writer;
     writer.SetSourceImage (image);
     char final_name[100];
-    sprintf(final_name, "%s_%f_%f_%f_%f.bmp", name, tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
+    sprintf(final_name, "%s_%.0f_%.0f_%.0f_%.0f.bmp", name, tile_ul_x, tile_ul_y, tile_lr_x, tile_lr_y);
     printf("%s \n", final_name);
     writer.SetDestFilename (final_name);
     writer.WriteDestFile ();

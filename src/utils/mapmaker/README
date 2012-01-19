@@ -1,0 +1,7 @@
+To create a game map:
+
+1. bash run.sh
+2. Load the created raster in QGIS
+3. Draw provinces
+4. Using image clipper, clip game play area of the map
+5. Using mapmaker.py generate the map

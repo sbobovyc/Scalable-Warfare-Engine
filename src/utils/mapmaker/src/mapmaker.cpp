@@ -13,7 +13,7 @@ int main(int argc, char ** argv) {
     int height = 80 * CELL_SIZE;
 
 	//render_tiles(200, 1260, 280, 1, 1, size_x, size_y, width, height, name);
-	render_tiles(200, 1260, 280, 1, 1, 15, 30, 512, 512, name);
+	//render_tiles(200, 1260, 280, 1, 1, 15, 30, 512, 512, name);
 	//render_tiles(200, 1260, 280, 1, 1, 15, 15, 512, 256, name);
 	//render_tiles(200, 1260, 280, 1, 1, 5, 5, 512, 256, name);
 	return 0;

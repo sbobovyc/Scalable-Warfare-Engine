@@ -1,10 +1,12 @@
 export LD_LIBRARY_PATH=.
 ./mapmaker
+#Method 1
 #convert world_one_map.bmp -negate -morphology EdgeOut Diamond -colorspace Gray world_one_edge.png
 #convert world_one_edge.png -blur 0x2.0 world_one_edge_blur.png
 #convert world_one_edge_blur.png -threshold 5% world_one_thresh.png
 #convert world_one_thresh.png -negate -morphology Edge Diamond -colorspace Gray world_one_borders.png
 
+#Method 2
 convert world_one_map.bmp -negate -morphology EdgeOut Diamond -colorspace Gray world_one_edge.png
 convert world_one_edge.png -threshold 10% world_one_thresh.png
 convert world_one_thresh.png -morphology Close Disk:2 world_one_close.png
