@@ -33,6 +33,30 @@ installed successfully before running this script.\n\n'
 def print_mapnik_plugins():
     from mapnik2 import DatasourceCache as c; print ','.join(c.plugin_names())
 
+def query_data():
+    from osgeo import gdal
+    ds = gdal.Open("../world_one_mapCLIPPED.tif", gdal.GA_ReadOnly)
+    width = ds.RasterXSize
+    height = ds.RasterYSize
+    proj = ds.GetProjection()
+    gt = ds.GetGeoTransform()
+    minx = gt[0]
+    miny = gt[3] + width*gt[4] + height*gt[5] 
+    maxx = gt[0] + width*gt[1] + height*gt[2]
+    maxy = gt[3] 
+
+    print width, height, proj, gt
+    print minx, miny, maxx, maxy
+    print "Affine transform"
+    #http://www.gdal.org/gdal_datamodel.html
+    #http://svn.osgeo.org/gdal/trunk/gdal/swig/python/samples/tolatlong.py
+    Xgeo = gt[0] + 0*gt[1] + 0*gt[2]
+    Ygeo = gt[3] + 0*gt[4] + 0*gt[5]
+    # Shift to the center of the pixel
+    Xgeo += gt[1] / 2.0
+    Ygeo += gt[5] / 2.0
+    print Ygeo, Xgeo
+
 def create_testmap():
     map_out = "map.png"
     m = mapnik.Map(1024, 768)
@@ -146,16 +170,16 @@ def create_testmap_db_point():
     map_out = "map_pi.png"
     m = mapnik2.Map(1024, 768)
 
-    #style = mapnik2.Style()
+    style = mapnik2.Style()
     rule = mapnik2.Rule()
-    #rs = mapnik2.RasterSymbolizer()
-    #rule.symbols.append(rs)
-    #style.rules.append(rule)
-    #m.append_style('raster',style)
-    #lyr = mapnik2.Layer('raster')
-    #lyr.datasource = mapnik2.Gdal(base='..', file="world_one_mapCLIPPED.tif")
-    #lyr.styles.append('raster') 
-    #m.layers.append(lyr)
+    rs = mapnik2.RasterSymbolizer()
+    rule.symbols.append(rs)
+    style.rules.append(rule)
+    m.append_style('raster',style)
+    lyr = mapnik2.Layer('raster')
+    lyr.datasource = mapnik2.Gdal(base='..', file="world_one_mapCLIPPED.tif")
+    lyr.styles.append('raster') 
+    m.layers.append(lyr)
 
 
     symbolizer = mapnik2.PointSymbolizer(mapnik2.PathExpression("draw_circle.png"))
@@ -180,4 +204,5 @@ if __name__ == '__main__':
     print_mapnik_plugins()
     #create_testmap_db()
     #create_testmap_db_region()
-    create_testmap_region_filter()
+    #create_testmap_region_filter()
+    query_data()
