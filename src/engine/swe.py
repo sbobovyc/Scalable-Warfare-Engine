@@ -1,5 +1,9 @@
+import time
 import pygame
 from pygame.locals import *
+
+from fileManager import FM
+from log import Log
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -30,10 +34,15 @@ class CApp:
 	self.fps = pygame.time.Clock()
 	
     def on_init(self):
+        gameFM = FM("../../mods")
+        gameLog = Log()
         pygame.init()
         self._display_surf = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT), pygame.HWSURFACE | pygame.DOUBLEBUF)
         self._running = True
-        self._surf_image = pygame.image.load("../utils/mapmaker/world_one_map.bmp").convert()
+        t = time.time()
+        self._surf_image = pygame.image.load("../../mods/main_game/maps/world_one_map.tif").convert()
+        #self._surf_image = pygame.image.load(gameFM.retrieveFilePath("/maps/world_one_map.tif")).convert()
+        gameLog.logger.info("Loading took %0.6f seconds" % (time.time() - t))
 	print self._surf_image.get_size()
  
     def on_event(self, event):
