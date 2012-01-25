@@ -6,8 +6,9 @@ import sqlite3
 
 import mod
 
-class FS():
-    schema = "CREATE TABLE files (fullpath text, alias text, mod text, version text)"
+class FM():
+    fileSchema = "CREATE TABLE files (fullpath text, alias text, mod text, version text)"
+    modSchema = "CREATE TABLE mods (fullpath text, modname text, version text, author text, description text)"
 
     def __init__(self, resourcePath):
         self.initDB()   
@@ -60,7 +61,7 @@ class FS():
         #            print "An error occurred:", e.args[0]
         #        buffer = ""
 
-        self.con.close()
+        #self.con.close()
 
     def initDB(self):
         #con = sqlite3.connect(":memory:")
@@ -68,8 +69,9 @@ class FS():
         self.con.isolation_level = None
         self.cur = self.con.cursor()
 
-        # create the table
-        self.cur.execute(FS.schema)
+        # create the tables
+        self.cur.execute(FM.fileSchema)
+        self.cur.execute(FM.modSchema)
         # commit
         self.con.commit()
 
@@ -98,11 +100,22 @@ class FS():
         m = mod.mod()
         m.open(os.path.join(modPath, mod.mod.MODCFG))
 
+        pathLength = len(modPath)
+
         for f in fileList:
-            self.cur.execute("INSERT INTO files VALUES (?, ?, ?, ?)", (f, f, m.name, m.version))
+            alias = f[pathLength:]
+            self.cur.execute("INSERT INTO files VALUES (?, ?, ?, ?)", (f, alias, m.name, m.version))
+        
+        self.cur.execute("INSERT INTO mods VALUES (?, ?, ?, ?, ?)", (modPath, m.name, m.version, m.author, m.description))
         self.con.commit()
+
+    def retrieveFilePath(self, fileAlias):
+        self.cur.execute("SELECT fullpath FROM files WHERE alias IS ? LIMIT 1", [fileAlias]);
+        self.con.commit()
+        fullPath = self.cur.fetchone()[0]
+        return fullPath
         
 if __name__ == "__main__" :
     path = os.path.abspath("../../mods")
-    print path
-    fs = FS(path)
+    fs = FM(path)
+    print fs.retrieveFilePath("/maps/border.shp")
