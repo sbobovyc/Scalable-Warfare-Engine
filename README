@@ -3,3 +3,4 @@ libnoise
 noiseutils
 pygame
 libgdal1-dev
+python-wxgtk3.0

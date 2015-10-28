@@ -6,7 +6,7 @@ Created on Dec 6, 2012
 import pygame 
 import numpy
 from wx.lib.pubsub import pub
-print "pubsub", pub.VERSION_STR
+print "pubsub", pub.VERSION_API
 
 import OC_Renderer
 
