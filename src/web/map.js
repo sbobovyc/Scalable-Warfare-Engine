@@ -35,7 +35,7 @@ var getProvinceStyle = function() {
 
 var getNeighborStyle = function() {
     return function(feature, resolution) {
-        console.log('getNeighborStyle, got feature ' + feature +' resolution ' + resolution);
+        console.log('getNeighborStyle, got ' + feature.get('NAME_ENGLI') + ', type ' + feature.getGeometry().getExtent() + ', resolution ' + resolution);
         var style = new ol.style.Style({
                 stroke: new ol.style.Stroke({color: 'LightGray', width: 2}),
                 text: new ol.style.Text({

@@ -2,6 +2,7 @@ CONTENT_DIR = content
 
 convert:
 	bash geojson-conversion.sh
+	python ../utils/geonames2geojson.py
     
 download:
 	wget -nc http://thematicmapping.org/downloads/TM_WORLD_BORDERS_SIMPL-0.3.zip
@@ -18,5 +19,7 @@ download:
 	wget -nc http://biogeo.ucdavis.edu/data/gadm2.8/shp/IRQ_adm_shp.zip
 	wget -nc http://biogeo.ucdavis.edu/data/gadm2.8/shp/JOR_adm_shp.zip
 	wget -nc http://biogeo.ucdavis.edu/data/gadm2.8/shp/ISR_adm_shp.zip
+	# city names
+	wget -nc http://download.geonames.org/export/dump/SY.zip
 
 
