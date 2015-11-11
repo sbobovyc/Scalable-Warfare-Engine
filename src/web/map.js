@@ -3,6 +3,47 @@
 console.log('SWE: starting render');
 console.time('render')
 
+var labelFont = 'Verdana';
+
+var getProvinceStyle = function() {
+    return function(feature, resolution) {
+        var style = new ol.style.Style({
+                stroke: new ol.style.Stroke({color: 'blue'}),
+                text: new ol.style.Text({
+                            font: '12px ' + labelFont,
+                            text: feature.get('NAME_1'),
+                            textAlign: 'center',
+                            textBaseline: 'middle',
+                            fill: new ol.style.Fill({color: 'black'}),
+                            offsetX: 0,
+                            offsetY: 0,
+                            rotation: 0
+                })                                            
+        });
+        return [style];
+    };
+};
+
+var getNeighborStyle = function() {
+    return function(feature, resolution) {
+        console.log('got feature ' + feature);
+        var style = new ol.style.Style({
+                stroke: new ol.style.Stroke({color: 'LightGray', width: 2}),
+                text: new ol.style.Text({
+                            font: '22px ' + labelFont,
+                            text: feature.get('NAME_ENGLI'),
+                            textAlign: 'center',
+                            textBaseline: 'middle',
+                            fill: new ol.style.Fill({color: 'black'}),
+                            offsetX: 0,
+                            offsetY: 0,
+                            rotation: 0
+                })                                            
+        });
+        return [style];
+    };
+};
+
 var neighbor_border_style = new ol.style.Style({stroke: new ol.style.Stroke({color: '#ccb', width: 2})});
 
 var road_style = new ol.style.Style({stroke: new ol.style.Stroke({color: '#808000', width: 0.5})});
@@ -40,7 +81,7 @@ var map = new ol.Map({
               url: './content/TUR_adm0.geojson', 
               format: new ol.format.GeoJSON()
             }),
-      style: neighbor_border_style
+      style: getNeighborStyle()
     }),
     new ol.layer.Vector({
       title: 'vector_layer_lebanon0',
@@ -49,7 +90,7 @@ var map = new ol.Map({
               url: './content/LBN_adm0.geojson', 
               format: new ol.format.GeoJSON()
             }),
-      style: neighbor_border_style
+      style: getNeighborStyle()
     }),
     new ol.layer.Vector({
       title: 'vector_layer_israel0',
@@ -58,7 +99,7 @@ var map = new ol.Map({
               url: './content/ISR_adm0.geojson', 
               format: new ol.format.GeoJSON()
             }),
-      style: neighbor_border_style
+      style: getNeighborStyle()
     }),
     new ol.layer.Vector({
       title: 'vector_layer_jordan0',
@@ -67,7 +108,7 @@ var map = new ol.Map({
               url: './content/JOR_adm0.geojson', 
               format: new ol.format.GeoJSON()
             }),
-      style: neighbor_border_style
+      style: getNeighborStyle()
     }),
     new ol.layer.Vector({
       title: 'vector_layer_iraq0',
@@ -76,7 +117,7 @@ var map = new ol.Map({
               url: './content/IRQ_adm0.geojson', 
               format: new ol.format.GeoJSON()
             }),
-      style: neighbor_border_style
+      style: getNeighborStyle() 
     }),
     new ol.layer.Vector({
       title: 'vector_layer_syria0',
@@ -90,15 +131,17 @@ var map = new ol.Map({
       source: new ol.source.Vector({
               projection: 'EPGS:4326',
               url: './content/SYR_adm1.geojson', 
-              format: new ol.format.GeoJSON()})
+              format: new ol.format.GeoJSON()
+            }),
+      style: getProvinceStyle() 
     }),
-    new ol.layer.Vector({
-      title: 'vector_layer_syria2',
-      source: new ol.source.Vector({
-              projection: 'EPGS:4326',
-              url: './content/SYR_adm2.geojson', 
-              format: new ol.format.GeoJSON()})
-    }),
+    //new ol.layer.Vector({
+    //  title: 'vector_layer_syria2',
+    //  source: new ol.source.Vector({
+    //          projection: 'EPGS:4326',
+    //          url: './content/SYR_adm2.geojson', 
+    //          format: new ol.format.GeoJSON()})
+    //}),
     new ol.layer.Vector({
       title: 'vector_layer_syria_roads',
       source: new ol.source.Vector({
@@ -117,8 +160,8 @@ var map = new ol.Map({
     })
   ],
   view: new ol.View({
-    center: ol.proj.fromLonLat([40.41, 35.82]),
-    zoom: 6 
+    center: ol.proj.fromLonLat([38, 35.145]),
+    zoom: 7 
   })
 });
 console.timeEnd('render');
