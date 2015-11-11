@@ -1,17 +1,26 @@
 // http://christopherjennison.com/openlayers3-quickstart-tutorial/
 // http://openlayers.org/en/v3.6.0/examples/vector-layer.html
+// http://openlayers.org/en/v3.9.0/examples/vector-labels.html 
+
 console.log('SWE: starting render');
 console.time('render')
 
 var labelFont = 'Verdana';
+var maxProvinceTextZoom = 1200;
+var minRoadZoom = 310;
 
 var getProvinceStyle = function() {
     return function(feature, resolution) {
+        var text = '';
+        if (resolution < maxProvinceTextZoom) {
+            text = feature.get('NAME_1');
+        }
+
         var style = new ol.style.Style({
                 stroke: new ol.style.Stroke({color: 'blue'}),
                 text: new ol.style.Text({
                             font: '12px ' + labelFont,
-                            text: feature.get('NAME_1'),
+                            text: text,
                             textAlign: 'center',
                             textBaseline: 'middle',
                             fill: new ol.style.Fill({color: 'black'}),
@@ -26,7 +35,7 @@ var getProvinceStyle = function() {
 
 var getNeighborStyle = function() {
     return function(feature, resolution) {
-        console.log('got feature ' + feature);
+        console.log('getNeighborStyle, got feature ' + feature +' resolution ' + resolution);
         var style = new ol.style.Style({
                 stroke: new ol.style.Stroke({color: 'LightGray', width: 2}),
                 text: new ol.style.Text({
@@ -44,9 +53,20 @@ var getNeighborStyle = function() {
     };
 };
 
-var neighbor_border_style = new ol.style.Style({stroke: new ol.style.Stroke({color: '#ccb', width: 2})});
-
-var road_style = new ol.style.Style({stroke: new ol.style.Stroke({color: '#808000', width: 0.5})});
+var getRoadStyle = function() {
+    return function(feature, resolution) {
+        var style = new ol.style.Style();
+        if (resolution < minRoadZoom) {
+            if(feature.get('RTT_DESCRI') == 'Primary Route' || feature.get('RTT_DESCRI') == 'Unknown') {
+               style = new ol.style.Style({stroke: new ol.style.Stroke({color: 'black', width: 1.5})});
+            } else {
+               style = new ol.style.Style({stroke: new ol.style.Stroke({color: '#808000', width: 0.5})});
+            } 
+        }
+        
+        return [style];
+    };
+};
 
 var inland_water_style = new ol.style.Style({
             stroke: new ol.style.Stroke({color: 'blue', width: 0.3}),
@@ -148,7 +168,7 @@ var map = new ol.Map({
               projection: 'EPGS:4326',
               url: './content/SYR_roads.geojson', 
               format: new ol.format.GeoJSON()}),
-       style: road_style
+       style: getRoadStyle()
     }),
     new ol.layer.Vector({
       title: 'vector_layer_syria_water',
