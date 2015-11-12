@@ -6,8 +6,34 @@ console.log('SWE: starting render');
 console.time('render')
 
 var labelFont = 'Verdana';
+var maxCityZoom = 310;
 var maxProvinceTextZoom = 1200;
 var minRoadZoom = 310;
+
+var getCityStyle = function() {
+    return function(feature, resolution) {
+        var style = new ol.style.Style();
+        var text = feature.get('asciiname');
+        if (resolution < maxCityZoom && (text == "Damascus" || text == "Homs" || text == "Aleppo")) {
+            var style = new ol.style.Style({
+                    image: new ol.style.Icon({
+                        src: 'http://dev.openlayers.org/img/marker.png'
+                    }),
+                    text: new ol.style.Text({
+                                font: '10px ' + labelFont,
+                                text: text,
+                                textAlign: 'center',
+                                textBaseline: 'middle',
+                                fill: new ol.style.Fill({color: 'black'}),
+                                offsetX: 0,
+                                offsetY: -20,
+                                rotation: 0
+                    })                                            
+            });
+        }
+        return [style];
+    };
+};
 
 var getProvinceStyle = function() {
     return function(feature, resolution) {
@@ -162,6 +188,14 @@ var map = new ol.Map({
     //          url: './content/SYR_adm2.geojson', 
     //          format: new ol.format.GeoJSON()})
     //}),
+    new ol.layer.Vector({
+      title: 'vector_layer_syria_cities',
+      source: new ol.source.Vector({
+              projection: 'EPGS:4326',
+              url: './content/SYR_cities.geojson', 
+              format: new ol.format.GeoJSON()}),
+       style: getCityStyle()
+    }),
     new ol.layer.Vector({
       title: 'vector_layer_syria_roads',
       source: new ol.source.Vector({
