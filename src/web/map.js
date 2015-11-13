@@ -12,6 +12,14 @@ var maxProvinceTextZoom = 1200;
 var minRoadZoom = 310;
 var maxInlandWaterZoom = maxProvinceTextZoom;
 
+var shadowStyle = new ol.style.Style({
+  stroke: new ol.style.Stroke({
+    color: [0, 0, 127, 0.15],
+    width: 6
+  }),
+  zIndex: 1
+});
+
 var getCityStyle = function() {
     return function(feature, resolution) {
         var style = new ol.style.Style();
@@ -57,12 +65,13 @@ var getProvinceStyle = function() {
                             rotation: 0
                 })                                            
         });
-        return [style];
+        return [shadowStyle, style];
     };
 };
 
 var getNeighborStyle = function() {
     return function(feature, resolution) {
+        console.log(feature);
         //console.log('getNeighborStyle, got ' + feature.get('NAME_ENGLI') + ', type ' + feature.getGeometry().getExtent() + ', resolution ' + resolution);
         var style = new ol.style.Style({
                 stroke: new ol.style.Stroke({color: 'LightGray', width: 2}),
@@ -241,13 +250,13 @@ var selectClick = new ol.interaction.Select({
 map.addInteraction(selectClick);
 
 selectClick.on('select', function(e) {
-    console.log(e.target.getFeatures().getLength() +
-      ' selected features (last operation selected ' + e.selected.length +
-      ' and deselected ' + e.deselected.length + ' features)');
+    //console.log(e.target.getFeatures().getLength() +
+    //  ' selected features (last operation selected ' + e.selected.length +
+    //  ' and deselected ' + e.deselected.length + ' features)');
     if(e.selected.length != 0) {
         var feature = e.target.getFeatures().item(0);
         document.getElementById('test_description').innerHTML = feature.get('NAME_1');
-        console.log(feature.get('NAME_1'));
+        //console.log(feature);
     } else {
         document.getElementById('test_description').innerHTML = "Nothing selected";
 
@@ -256,6 +265,20 @@ selectClick.on('select', function(e) {
 
 var zoomSlider = new ol.control.ZoomSlider();
 map.addControl(zoomSlider);
+map.addControl(new ol.control.MousePosition());
+map.addControl(new ol.control.FullScreen());
+
+// Create the graticule component
+var graticule = new ol.Graticule({
+  // the style to use for the lines, optional.
+  strokeStyle: new ol.style.Stroke({
+    color: 'rgba(255,120,0,0.9)',
+    width: 2,
+    lineDash: [0.5, 4]
+  })
+});
+//graticule.setMap(map);
 
 
 console.timeEnd('render');
+
