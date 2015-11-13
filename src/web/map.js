@@ -1,6 +1,7 @@
 // http://christopherjennison.com/openlayers3-quickstart-tutorial/
 // http://openlayers.org/en/v3.6.0/examples/vector-layer.html
-// http://openlayers.org/en/v3.9.0/examples/vector-labels.html 
+// http://openlayers.org/en/v3.9.0/examples/vector-labels.html
+// http://openlayers.org/en/v3.11.1/examples/zoomslider.html
 
 console.log('SWE: starting render');
 console.time('render')
@@ -9,6 +10,7 @@ var labelFont = 'Verdana';
 var maxCityZoom = 310;
 var maxProvinceTextZoom = 1200;
 var minRoadZoom = 310;
+var maxInlandWaterZoom = maxProvinceTextZoom;
 
 var getCityStyle = function() {
     return function(feature, resolution) {
@@ -94,10 +96,18 @@ var getRoadStyle = function() {
     };
 };
 
-var inland_water_style = new ol.style.Style({
-            stroke: new ol.style.Stroke({color: 'blue', width: 0.3}),
-            fill: new ol.style.Fill({color: 'rgba(0, 0, 255, 0.1)'})
-});
+var getInlandWaterStyle = function() {
+    return function(feature, resolution) {
+        var style = new ol.style.Style();
+        if (resolution < maxInlandWaterZoom) {
+            var style = new ol.style.Style({
+                    stroke: new ol.style.Stroke({color: 'blue', width: 0.3}),
+                    fill: new ol.style.Fill({color: 'rgba(0, 0, 255, 0.1)'})
+            });
+        }
+        return [style];
+    };
+};
 
 var map = new ol.Map({
   target: 'map',
@@ -210,7 +220,7 @@ var map = new ol.Map({
               projection: 'EPGS:4326',
               url: './content/SYR_water_areas_dcw.geojson', 
               format: new ol.format.GeoJSON()}),
-       style: inland_water_style
+       style: getInlandWaterStyle()
     })
   ],
   view: new ol.View({
@@ -235,5 +245,9 @@ selectClick.on('select', function(e) {
       ' selected features (last operation selected ' + e.selected.length +
       ' and deselected ' + e.deselected.length + ' features)');
 });
+
+var zoomSlider = new ol.control.ZoomSlider();
+map.addControl(zoomSlider);
+
 
 console.timeEnd('render');
