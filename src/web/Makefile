@@ -21,5 +21,8 @@ download:
 	wget -nc http://biogeo.ucdavis.edu/data/gadm2.8/shp/ISR_adm_shp.zip
 	# city names
 	wget -nc http://download.geonames.org/export/dump/SY.zip
+	# markers
+	wget -nc http://dev.openlayers.org/img/marker.png 
+	mv marker.png ${CONTENT_DIR}
 
 

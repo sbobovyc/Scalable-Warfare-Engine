@@ -17,7 +17,7 @@ var getCityStyle = function() {
         if (resolution < maxCityZoom && (text == "Damascus" || text == "Homs" || text == "Aleppo")) {
             var style = new ol.style.Style({
                     image: new ol.style.Icon({
-                        src: 'http://dev.openlayers.org/img/marker.png'
+                        src: './content/marker.png'
                     }),
                     text: new ol.style.Text({
                                 font: '10px ' + labelFont,
@@ -61,7 +61,7 @@ var getProvinceStyle = function() {
 
 var getNeighborStyle = function() {
     return function(feature, resolution) {
-        console.log('getNeighborStyle, got ' + feature.get('NAME_ENGLI') + ', type ' + feature.getGeometry().getExtent() + ', resolution ' + resolution);
+        //console.log('getNeighborStyle, got ' + feature.get('NAME_ENGLI') + ', type ' + feature.getGeometry().getExtent() + ', resolution ' + resolution);
         var style = new ol.style.Style({
                 stroke: new ol.style.Stroke({color: 'LightGray', width: 2}),
                 text: new ol.style.Text({
@@ -218,4 +218,22 @@ var map = new ol.Map({
     zoom: 7 
   })
 });
+
+// select interaction working on "click"
+var selectClick = new ol.interaction.Select({
+  condition: ol.events.condition.click,
+  layers: function (layer) {
+    return layer.get('title') == 'vector_layer_syria1';
+  }
+});
+
+
+map.addInteraction(selectClick);
+
+selectClick.on('select', function(e) {
+    console.log(e.target.getFeatures().getLength() +
+      ' selected features (last operation selected ' + e.selected.length +
+      ' and deselected ' + e.deselected.length + ' features)');
+});
+
 console.timeEnd('render');
