@@ -16,7 +16,7 @@ var getCityStyle = function() {
     return function(feature, resolution) {
         var style = new ol.style.Style();
         var text = feature.get('asciiname');
-        if (resolution < maxCityZoom && (text == "Damascus" || text == "Homs" || text == "Aleppo")) {
+        if (resolution < maxCityZoom && (text == "Damascus" || text == "Homs" || text == "Aleppo" || text == 'Dar\'a')) {
             var style = new ol.style.Style({
                     image: new ol.style.Icon({
                         src: './content/marker.png'
@@ -244,6 +244,14 @@ selectClick.on('select', function(e) {
     console.log(e.target.getFeatures().getLength() +
       ' selected features (last operation selected ' + e.selected.length +
       ' and deselected ' + e.deselected.length + ' features)');
+    if(e.selected.length != 0) {
+        var feature = e.target.getFeatures().item(0);
+        document.getElementById('test_description').innerHTML = feature.get('NAME_1');
+        console.log(feature.get('NAME_1'));
+    } else {
+        document.getElementById('test_description').innerHTML = "Nothing selected";
+
+    }
 });
 
 var zoomSlider = new ol.control.ZoomSlider();
