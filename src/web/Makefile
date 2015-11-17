@@ -24,5 +24,11 @@ download:
 	# markers
 	wget -nc http://dev.openlayers.org/img/marker.png 
 	mv marker.png ${CONTENT_DIR}
+	# country flags
+	wget -nc http://www.famfamfam.com/lab/icons/flags/famfamfam_flag_icons.zip
+	unzip -n famfamfam_flag_icons.zip -d ${CONTENT_DIR}
+	# openstreetmap data
+	wget -nc http://download.geofabrik.de/asia/syria-latest.shp.zip
+    
 
 

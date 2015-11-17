@@ -2,6 +2,8 @@
 // http://openlayers.org/en/v3.6.0/examples/vector-layer.html
 // http://openlayers.org/en/v3.9.0/examples/vector-labels.html
 // http://openlayers.org/en/v3.11.1/examples/zoomslider.html
+// http://openlayers.org/en/v3.11.1/examples/vector-layer.html?q=server
+// https://openlayersbook.github.io/ch06-styling-vector-layers/example-08.html
 
 console.log('SWE: starting render');
 console.time('render')
@@ -45,60 +47,78 @@ var getCityStyle = function() {
     };
 };
 
+var provinceNameCache = {};
 var getProvinceStyle = function() {
     return function(feature, resolution) {
         var text = '';
         if (resolution < maxProvinceTextZoom) {
             text = feature.get('NAME_1');
         }
-
-        var style = new ol.style.Style({
-                stroke: new ol.style.Stroke({color: 'blue'}),
-                text: new ol.style.Text({
-                            font: '12px ' + labelFont,
-                            text: text,
-                            textAlign: 'center',
-                            textBaseline: 'middle',
-                            fill: new ol.style.Fill({color: 'black'}),
-                            offsetX: 0,
-                            offsetY: 0,
-                            rotation: 0
-                })                                            
-        });
-        return [shadowStyle, style];
+        if (!provinceNameCache[text]) {
+            provinceNameCache[text] = new ol.style.Style({
+                    stroke: new ol.style.Stroke({color: 'blue'}),
+                    text: new ol.style.Text({
+                                font: '12px ' + labelFont,
+                                text: text,
+                                textAlign: 'center',
+                                textBaseline: 'middle',
+                                fill: new ol.style.Fill({color: 'black'}),
+                                offsetX: 0,
+                                offsetY: 0,
+                                rotation: 0
+                    })                                            
+            });
+        }
+        return [shadowStyle, provinceNameCache[text]];
     };
 };
 
+var neighborNameCache = {};
 var getNeighborStyle = function() {
     return function(feature, resolution) {
-        console.log(feature);
+        var countryName = feature.get('NAME_ENGLI');
+        //var flag_icon = './content/png/'+feature.get('ISO2').toLowerCase()+'.png';
+        //console.log(flag_icon);
         //console.log('getNeighborStyle, got ' + feature.get('NAME_ENGLI') + ', type ' + feature.getGeometry().getExtent() + ', resolution ' + resolution);
-        var style = new ol.style.Style({
-                stroke: new ol.style.Stroke({color: 'LightGray', width: 2}),
-                text: new ol.style.Text({
-                            font: '22px ' + labelFont,
-                            text: feature.get('NAME_ENGLI'),
-                            textAlign: 'center',
-                            textBaseline: 'middle',
-                            fill: new ol.style.Fill({color: 'black'}),
-                            offsetX: 0,
-                            offsetY: 0,
-                            rotation: 0
-                })                                            
-        });
-        return [style];
+        if(!neighborNameCache[countryName]) {
+            neighborNameCache[countryName] = new ol.style.Style({
+                    stroke: new ol.style.Stroke({color: 'LightGray', width: 2}),
+                    text: new ol.style.Text({
+                                font: '22px ' + labelFont,
+                                text: feature.get('NAME_ENGLI'),
+                                textAlign: 'center',
+                                textBaseline: 'middle',
+                                fill: new ol.style.Fill({color: 'black'}),
+                                offsetX: 0,
+                                offsetY: 0,
+                                rotation: 0
+                    })
+            });
+        }
+        return [neighborNameCache[countryName]];
     };
 };
+
+var openStreetMapRoads = false;
 
 var getRoadStyle = function() {
     return function(feature, resolution) {
         var style = new ol.style.Style();
         if (resolution < minRoadZoom) {
-            if(feature.get('RTT_DESCRI') == 'Primary Route' || feature.get('RTT_DESCRI') == 'Unknown') {
-               style = new ol.style.Style({stroke: new ol.style.Stroke({color: 'black', width: 1.5})});
+            if(openStreetMapRoads) {
+                if(feature.get('ref') == 'M5') {
+                   style = new ol.style.Style({stroke: new ol.style.Stroke({color: 'black', width: 1.5})});
+                } else {
+                   //style = new ol.style.Style({stroke: new ol.style.Stroke({color: '#808000', width: 0.5})});
+                } 
+
             } else {
-               style = new ol.style.Style({stroke: new ol.style.Stroke({color: '#808000', width: 0.5})});
-            } 
+                if(feature.get('RTT_DESCRI') == 'Primary Route' || feature.get('RTT_DESCRI') == 'Unknown') {
+                   style = new ol.style.Style({stroke: new ol.style.Stroke({color: 'black', width: 1.5})});
+                } else {
+                   style = new ol.style.Style({stroke: new ol.style.Stroke({color: '#808000', width: 0.5})});
+                } 
+            }
         }
         
         return [style];
