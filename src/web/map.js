@@ -47,15 +47,15 @@ var getCityStyle = function() {
     };
 };
 
-var provinceNameCache = {};
+var provinceCache = {};
 var getProvinceStyle = function() {
     return function(feature, resolution) {
         var text = '';
         if (resolution < maxProvinceTextZoom) {
             text = feature.get('NAME_1');
         }
-        if (!provinceNameCache[text]) {
-            provinceNameCache[text] = new ol.style.Style({
+        if (!provinceCache[text]) {
+            provinceCache[text] = new ol.style.Style({
                     stroke: new ol.style.Stroke({color: 'blue'}),
                     text: new ol.style.Text({
                                 font: '12px ' + labelFont,
@@ -69,7 +69,7 @@ var getProvinceStyle = function() {
                     })                                            
             });
         }
-        return [shadowStyle, provinceNameCache[text]];
+        return [shadowStyle, provinceCache[text]];
     };
 };
 
@@ -281,6 +281,74 @@ selectClick.on('select', function(e) {
         document.getElementById('test_description').innerHTML = "Nothing selected";
 
     }
+});
+
+var highlightStyleCache = {};
+
+var featureOverlay = new ol.layer.Vector({
+  source: new ol.source.Vector(),
+  map: map,
+  style: function(feature, resolution) {
+    var text = resolution < 5000 ? feature.get('NAME_1') : '';
+    if (!highlightStyleCache[text]) {
+      highlightStyleCache[text] = [new ol.style.Style({
+        stroke: new ol.style.Stroke({
+          color: '#f00',
+          width: 1
+        }),
+        fill: new ol.style.Fill({
+          color: 'rgba(255,0,0,0.1)'
+        }),
+        text: new ol.style.Text({
+          font: '12px Calibri,sans-serif',
+          text: text,
+          fill: new ol.style.Fill({
+            color: '#000'
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#f00',
+            width: 3
+          })
+        })
+      })];
+    }
+    return highlightStyleCache[text];
+  }
+});
+
+var highlight;
+var displayFeatureInfo = function(pixel) {
+
+  var feature = map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+    return feature;
+  });
+
+  var info = document.getElementById('info');
+  if (feature) {
+    document.getElementById('test_description').innerHTML = feature.get('NAME_1');
+  } else {
+    document.getElementById('test_description').innerHTML = 'Ynbsp;';
+  }
+
+  if (feature !== highlight) {
+    if (highlight) {
+      featureOverlay.getSource().removeFeature(highlight);
+    }
+    if (feature) {
+      featureOverlay.getSource().addFeature(feature);
+    }
+    highlight = feature;
+  }
+
+};
+
+
+map.on('pointermove', function(evt) {
+  if (evt.dragging) {
+    return;
+  }
+  var pixel = map.getEventPixel(evt.originalEvent);
+  displayFeatureInfo(pixel);
 });
 
 var zoomSlider = new ol.control.ZoomSlider();
