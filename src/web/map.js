@@ -187,6 +187,15 @@ var map = new ol.Map({
       style: getNeighborStyle()
     }),
     new ol.layer.Vector({
+      title: 'vector_layer_palestine0',
+      source: new ol.source.Vector({
+              projection: 'EPGS:4326',
+              url: './content/PSE_adm0.geojson', 
+              format: new ol.format.GeoJSON()
+            }),
+      style: getNeighborStyle()
+    }),
+    new ol.layer.Vector({
       title: 'vector_layer_jordan0',
       source: new ol.source.Vector({
               projection: 'EPGS:4326',
